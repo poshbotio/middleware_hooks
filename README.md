@@ -1,4 +1,4 @@
-<h1 align="center">👋 Welcome to PoshBot Middleware Hook Repo 👋</h1>
+<h1 align="center">👋 Welcome to PoshBot Middleware Hooks Repo 👋</h1>
 <p>
   <a href="https://poshbot.readthedocs.io/en/latest/guides/middleware/">
     <img alt="Documentation" src="https://img.shields.io/badge/documentation-yes-brightgreen.svg" target="_blank" />
