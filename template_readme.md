@@ -1,21 +1,19 @@
-# {{HookName}}
+# {{Hook Name}}
 
 ## Overview
 
-What does it do?
+<!--- What does the middleware do? -->
 
 ## Configuration
 
-What configuration might be required or can be customized without much effort?
+<!--- What configuration might be required or can be customized without much effort? -->
 
 ## Expected Behavior
 
-Example of expected behavior?
+<!--- Example(s) of expected behavior -->
 
-## 🤝 Contributors
+## Contributors
 
-- [Brandon Olin](https://devblackops.io/)
-- [MyUser](webpage)
+<!--- (Optional) List yourself or others you want to associate with this middleware -->
 
-## Show your support
-Give a ⭐️ if this project helped you!
+- [<Full name>](<Github profile URL >)
