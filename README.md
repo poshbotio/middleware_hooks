@@ -1,15 +1,29 @@
-<h1 align="center">Welcome to PoshBot Middleware Hook Repo 👋</h1>
+<h1 align="center">👋 Welcome to PoshBot Middleware Hook Repo 👋</h1>
 <p>
   <a href="https://poshbot.readthedocs.io/en/latest/guides/middleware/">
     <img alt="Documentation" src="https://img.shields.io/badge/documentation-yes-brightgreen.svg" target="_blank" />
   </a>
 </p>
 
-> A public repository of middleware hooks to use in PoshBot
+> This repository is a collection of useful middleware hooks developed by the community.
+> Feel free to use these or take inspiration from them and create your own. **Please** consider contributing back so others can benefit from them as well.
 
-### 🏠 [Homepage](https://poshbot.readthedocs.io/en/latest/guides/middleware/)
+## What is PoshBot Middlware
+
+PoshBot has the concept of [middlware hooks](http://docs.poshbot.io/en/latest/guides/middleware/#middleware-hooks), which is the ability to execute custom PowerShell scripts during certain events in the command processing lifecycle.
+These hooks can do pretty much anything you want.
+After all, they are just PowerShell scripts.
+Middlware can add centralized authentication logic, custom logging solutions, advanced whitelisting or blacklisting, or any other custom processes.
+This middleware allows you to extend the utility of your ChatOps environment.
+Read [this blog post](https://devblackops.io/poshbot-middleware-for-ratelimiting/) about an example usage of middleware.
+
+## Middleware Documentation
+
+Detailed documentation about middleware hooks can be found on the [ReadTheDocs]((https://poshbot.readthedocs.io/en/latest/guides/middleware/)) site.
 
 ## Install
+
+To copy this repository locally run:
 
 ```powershell
 git clone https://github.com/poshbotio/middleware_hooks.git
@@ -17,96 +31,134 @@ git clone https://github.com/poshbotio/middleware_hooks.git
 
 ## Usage
 
-Reference the contents of the middleware hook in your bot configuration.
-For example:
+To add middleware to PoshBot, you need a configuration object first.
+The code below will create a configuration with default values.
+
+```powershell
+$config = New-PoshBotConfiguration
+```
+
+Next, you use `New-PoshBotMiddlewareHook`.
+This command takes the name of the middleware hook and the path to the PowerShell script to execute.
+
+```powershell
+$preReceiveHook = New-PoshBotMiddlewareHook -Name 'prereceive' -Path 'c:/poshbot/middleware/prereceive.ps1'
+```
+
+This middleware is then added to the bot configuration object with the code below.
+When adding middleware to the `MiddlewareConfiguration` property, use the `Add()` method, passing in the middleware object you created above, and the type of middleware.
+The types are `PreReceive`, `PostReceive`, `PreExecute`, `PostExecute`, `PreResponse`, and `PostResponse`.
+You can read more about the differences between these types [here](http://docs.poshbot.io/en/latest/guides/middleware/#middlewareconfiguration).
+
+```powershell
+$config.MiddlewareConfiguration.Add($preReceiveHook, 'PreReceive')
+```
+
+Similarly, middleware can be removed using the Remove() method.
+
+```powershell
+$config.MiddlewareConfiguration.Remove($preReceiveHook, 'PreReceive')
+```
+
+A new instance of PoshBot is created and starting using the configuration object below.
+
+```powershell
+$backend = New-PoshBotSlackBackend -Configuration $config.BackendConfiguration
+$bot = New-PoshBotInstance -Backend $backend -Configuration $config
+$bot | Start-PoshBot
+```
+
+## Advanced Usage
+
+Here is a more advanced example of defining a PoshBot configuration, adding a middleware hook, and starting PoshBot.
 
 ```powershell
 #requires -Version 5.1
+# This uses PS 5.1 since this is leveraging Windows Credential Manager. PoshBot itself supports PowerShell 5 and above, including PowerShell Core on Linux/macOS.
+
 param(
-  $SlackUserName = '@MyUser.Name'
-  ,$BotName = 'poshbot'
-
+    $SlackUserName = '@MyUser.Name',
+    $BotName = 'poshbot'
 )
-# I use 5.1 since this is leveraging Windows Credential Manager, as well as I wanted to be able to handle other windows specific things. I had some issues with 6.2 and poshbot, but never had a chance to iron them out. Some plugins I tried didn't work in PowerShell core, so I just reverted to 5.1 for now
-$script:Directory = $PSScriptRoot
 
+if (@(Get-Module -Name PoshBot -ListAvailable).Count -eq 0) {
+    Install-Module PoshBot -Verbose:$false -Force
+}
+Import-Module PoshBot, PSSlack, BetterCredentials
 
-if (@(Get-Module -Name PoshBot -ListAvailable).count -eq 0)
-{ Install-Module PoshBot -verbose:$false -Force }
-Import-Module PoshBot, PSSlack,BetterCredentials
+# Cached credentials pulled via BetterCredentials
+$botCred = Find-Credential 'slack.bot.poshbot'
 
-#----------------------------------------------------------------------------#
-#  Cached Credentials Pulled Via BetterCredentialsefine Bot Configuration    #
-#----------------------------------------------------------------------------#
+# Define bot configuration
+$token       = $botCred.GetNetworkCredential().Password
+$BotName     = $BotName # The name of the bot we created
+$botAdmin    = $SlackUserName  # My account name in Slack
+$poshbotPath = Join-Path $PSScriptRoot 'poshbot'
 
-$botcred = Find-Credential 'slack.bot.poshbot'
-#----------------------------------------------------------------------------#
-#                          Define Bot Configuration                          #
-#----------------------------------------------------------------------------#
+# Configure differently if you want middleware to be a different git repo
+$middleWareFolderPath = Join-Path $poshbotPath 'middleware'
 
-$Token = $botcred.GetNetworkCredential().Password
-$BotName = $BotName # The name of the bot we created
-$BotAdmin = $SlackUserName  # My account name in Slack
-$PoshbotPath = Join-Path $script:Directory 'poshbot'
-
-#configure differently if you want middleware to be a different git repo
-$MiddleWareFolder = Join-Path $PoshBotpath 'middleware'
-
-New-Item -Path $PoshbotPath -Force -ItemType Directory -ErrorAction SilentlyContinue
-$PoshbotConfig = Join-Path $PoshbotPath config.psd1
-$PoshbotPlugins = Join-Path $PoshbotPath plugins
-$PoshbotLogs = Join-Path $PoshbotPath logs
+New-Item -Path $poshbotPath -Force -ItemType Directory -ErrorAction SilentlyContinue
+$configPath  = Join-Path $poshbotPath config.psd1
+$pluginPath  = Join-Path $poshbotPath plugins
+$logPath     = Join-Path $poshbotPath logs
 
 # Middleware hooks like processing messages and parsing for behavior (all messages, not just commands)
-$threadbotHook = New-PoshBotMiddlewareHook -Name 'threadbot-channel' -Path (Join-Path $MiddleWareFolder 'threadbot.channel.ps1')
-
-#----------------------------------------------------------------------------#
-#                 Create Configuration & Backend Credentials                 #
-#----------------------------------------------------------------------------#
+$middlewareHookPath = Join-Path $middleWareFolderPath 'threadbot.channel.ps1'
+$threadbotHook      = New-PoshBotMiddlewareHook -Name 'threadbot-channel' -Path $middlewareHookPath
 
 # Create a PoshBot configuration
-$BotParams = @{
+$botParams = @{
     Name                      = $BotName
-    BotAdmins                 = $BotAdmin
+    BotAdmins                 = $botAdmin
     CommandPrefix             = '!'
     LogLevel                  = 'Info'
-    BackendConfiguration      =  @{Name = 'SlackBackend'; Token = $Token }
+    BackendConfiguration      =  @{Name = 'SlackBackend'; Token = $token }
     AlternateCommandPrefixes  = 'bender', 'hal'
-    ConfigurationDirectory    = $PoshbotPath
-    LogDirectory              = $PoshbotLogs
-    PluginDirectory           = $PoshbotPlugins
+    ConfigurationDirectory    = $poshbotPath
+    LogDirectory              = $logPath
+    PluginDirectory           = $pluginPath
     PreReceiveMiddlewareHooks = $threadbotHook
 }
 
-
-#----------------------------------------------------------------------------#
-#                Persist Connection & Configuration Settings                 #
-#----------------------------------------------------------------------------#
-$null = mkdir $PoshbotPath, $PoshbotPlugins, $PoshbotLogs -Force
+# Persist connection & configuration Settings
+$null = mkdir $poshbotPath, $pluginPath, $logPath -Force
 
 Write-PSFMessage -Level Important -Message 'Creating bot configuration and instance'
-$config  = New-PoshBotConfiguration @BotParams
-Save-PoshBotConfiguration -InputObject $config -Path $PoshbotConfig -Force
+$config  = New-PoshBotConfiguration @botParams
+Save-PoshBotConfiguration -InputObject $config -Path $configPath -Force
 $backend = New-PoshBotSlackBackend -Configuration $config.BackendConfiguration
 $bot     = New-PoshBotInstance -Configuration $config -Backend $backend
 
-#----------------------------------------------------------------------------#
-#                               Start PoshBot                                #
-#----------------------------------------------------------------------------#
+# Start PoshBot
 Start-PoshBot -Configuration $config -ErrorAction Continue
-
 ```
 
-## 🤝 Contributing
+## Contributing
 
-Contributions, issues and feature requests are welcome!<br />
-Feel free to check [issues page](https://github.com/poshbotio/middleware_hooks/issues).
+Contributions, issues, and feature requests are welcome! 🤝
 
-To contribute, fork this repository, add your changes, and then create a readme in a folder with the same name as your script, along with a readme (using the template provided as `template_readme.md` and submit pull request.
+Feel free to check out the [issues page](https://github.com/poshbotio/middleware_hooks/issues) if you experiencing any problems.
+
+### New Hooks
+
+To contribute a new hook:
+
+1. [Fork this repository](https://guides.github.com/activities/forking/)
+2. Create a new branch
+3. Add your you hook to a sensibly named subfolder
+4. Create a `README.md` in the subfolder explaining what the hook does and how to configure it (use the `template_readme.md` as a guide)
+5. Submit a [pull request](https://help.github.com/en/articles/creating-a-pull-request)
+6. Rejoice 🎉
+
+### Improving Existing Hooks
+
+1. [Fork this repository](https://guides.github.com/activities/forking/)
+2. Create a new branch
+3. Add your improvements to the middleware hook
+4. Submit a [pull request](https://help.github.com/en/articles/creating-a-pull-request)
+5. Rejoice 🎉
 
 ## Show your support
 
-Give a ⭐️ if this project helped you!
-
-***
-_This README was generated with ❤️ by [readme-md-generator](https://github.com/kefranabg/readme-md-generator)_
+Star this project if it has helped you! ⭐️
