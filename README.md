@@ -10,7 +10,7 @@
 
 ## What is PoshBot Middlware
 
-PoshBot has the concept of [middlware hooks](http://docs.poshbot.io/en/latest/guides/middleware/#middleware-hooks), which is the ability to execute custom PowerShell scripts during certain events in the command processing lifecycle.
+[PoshBot](https://github.com/poshbotio/PoshBot) has the concept of [middlware hooks](http://docs.poshbot.io/en/latest/guides/middleware/#middleware-hooks), which is the ability to execute custom PowerShell scripts during certain events in the command processing lifecycle.
 These hooks can do pretty much anything you want.
 After all, they are just PowerShell scripts.
 Middlware can add centralized authentication logic, custom logging solutions, advanced whitelisting or blacklisting, or any other custom processes.
