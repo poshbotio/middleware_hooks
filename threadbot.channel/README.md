@@ -1,4 +1,4 @@
-# threadbot.channel.md
+# threadbot.channel
 
 ## Overview
 
@@ -15,6 +15,13 @@ The variables for
 | ---------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | MaximumMessages        | 6       | Throttle goal for maximum messages to consider ok in a channel before posting a message                                                                                              |
 | TimePeriodToMonitorSec | 900     | Minutes to allow for monitoring the maximum message. Example 7 messages in 13 minutes would exceed the limit of 6 and generate a response, as well as reactions at approx 3 messages |
+
+## Intended Hook Type
+
+- **PreReceive**
+
+  This middleware is intended to be used as a `PreReceive` hook.
+  Hooks of this type are executed **BEFORE** chat messages are resolved to commands.
 
 ## Expected Behavior
 
