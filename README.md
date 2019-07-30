@@ -17,6 +17,15 @@ Middlware can add centralized authentication logic, custom logging solutions, ad
 This middleware allows you to extend the utility of your ChatOps environment.
 Read [this blog post](https://devblackops.io/poshbot-middleware-for-ratelimiting/) about an example usage of middleware.
 
+## Available Hooks
+
+| Name | Description |
+|------|-------------|
+| adauth | Validates that a given chat user is a member of an Active Directory group before allowing command execution.
+| dropuser | Drops all messages from a given list of users.
+| strip-ssn | Detects possible Social Security numbers (SSNs) in command responses and sanitizes them.
+| threadbot.channel | Suggest Slack threads for busy rooms.
+
 ## Middleware Documentation
 
 Detailed documentation about middleware hooks can be found on the [ReadTheDocs]((https://poshbot.readthedocs.io/en/latest/guides/middleware/)) site.
