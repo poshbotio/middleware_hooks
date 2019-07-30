@@ -8,6 +8,11 @@
 
 <!--- What configuration might be required or can be customized without much effort? -->
 
+## Intended Hook Type
+
+<!--- Specify the intended middleware hook type this is designed for -->
+<!--- Possible values are: PreReceive, PostReceive, PreExecute, PostExecute, PreResponse, and PostResponse -->
+
 ## Expected Behavior
 
 <!--- Example(s) of expected behavior -->
