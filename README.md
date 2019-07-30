@@ -138,7 +138,7 @@ Start-PoshBot -Configuration $config -ErrorAction Continue
 
 Contributions, issues, and feature requests are welcome! 🤝
 
-Feel free to check out the [issues page](https://github.com/poshbotio/middleware_hooks/issues) if you experiencing any problems.
+Feel free to check out the [issues page](https://github.com/poshbotio/middleware_hooks/issues) if you are experiencing any problems.
 
 ### New Hooks
 
