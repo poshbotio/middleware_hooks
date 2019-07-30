@@ -18,8 +18,8 @@
 param(
     $Context,
     $Bot,
-    $MaximumMessages = 5
-    ,$TimePeriodToMonitorSec = 900
+    $MaximumMessages = 5,
+    $TimePeriodToMonitorSec = 900
 )
 
 $Bot.LogDebug('Beginning message ratelimit middleware')
